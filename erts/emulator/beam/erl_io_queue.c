@@ -30,6 +30,8 @@
 #include "erl_bits.h"
 #include "erl_io_queue.h"
 
+#include "erl_threads.h"
+
 #define IOL2V_ACC_SIZE (ERL_ONHEAP_BINARY_LIMIT * 4)
 #define IOL2V_BYTES_PER_REDUCTION (16)
 
@@ -1223,16 +1225,6 @@ BIF_RETTYPE iolist_to_iovec_1(BIF_ALIST_1) {
     BIF_RET(result);
 }
 
-#if 1 //nif way
-typedef struct erl_bif_io_vec {
-    int iovcnt;  /* length of vectors */
-    size_t size; /* total size in bytes */
-    SysIOVec *iov;
-} ErlBifIOVec;
-#else //erts way
-
-#endif
-
 #define SMALL_WRITE_VEC 16
 #define ERL_SMALL_IO_BIN_LIMIT 64
 
@@ -1258,7 +1250,7 @@ static int erts_ioq_list_vec(Eterm list, ErtsIOVec **evp)
 
     if (erts_ioq_iodata_vec_len(list, &vsize, &csize, &pvsize, &pcsize,
                                 &total_size, ERL_SMALL_IO_BIN_LIMIT)) {
-        return 2;
+        return 1;
     }
 
     //fprintf(stderr, "%s(%d), vsize %u, csize %lu, pvsieze %lu, pcsize %lu, total %ld\n",
@@ -1276,7 +1268,7 @@ static int erts_ioq_list_vec(Eterm list, ErtsIOVec **evp)
     if (csize) {
         cbin = (ErtsIOQBinary *)erts_bin_nrml_alloc_fnf(csize);
         if (!cbin)
-            return 3;
+            return 1;
     } else {
         cbin = NULL;
     }
@@ -1291,7 +1283,7 @@ static int erts_ioq_list_vec(Eterm list, ErtsIOVec **evp)
      * ERTS_ALC_T_xyz */
     ptr = erts_alloc_fnf(ERTS_ALC_T_TMP, alloc_size);
     if (!ptr)
-        return 4;
+        return 1;
 
     *evp = (ErtsIOVec *) ptr;
     ivp = (*evp)->common.iov = (SysIOVec *) (ptr + iov_offset);
@@ -1308,7 +1300,7 @@ static int erts_ioq_list_vec(Eterm list, ErtsIOVec **evp)
             erts_bin_free((Binary*)cbin);
         }
 
-        return 5;
+       return 1;
     }
 
     (*evp)->common.vsize = temp_size;
@@ -1318,15 +1310,12 @@ static int erts_ioq_list_vec(Eterm list, ErtsIOVec **evp)
 
 typedef struct {
     ErtsIOQueue ioq;
-    //ethr_mutex mutex;
-
 } ErlUserIOQueue;
 
 static int ioq_destructor(Binary *data) {
     ErlUserIOQueue *state = ERTS_MAGIC_BIN_UNALIGNED_DATA(data);
 
     erts_ioq_destroy(&state->ioq);
-
     return 1;
 }
 
@@ -1359,7 +1348,6 @@ BIF_RETTYPE create_io_queue_0(BIF_ALIST_0) {
 
     state = ERTS_MAGIC_BIN_UNALIGNED_DATA(magic_binary);
     erts_ioq_init(&state->ioq, ERTS_ALC_T_BINARY, 0);
-
     hp = HAlloc(BIF_P, ERTS_MAGIC_REF_THING_SIZE);
 
     return erts_mk_magic_ref(&hp, &MSO(BIF_P), magic_binary);
@@ -1399,11 +1387,7 @@ BIF_RETTYPE write_io_queue_2(BIF_ALIST_2) {
     } else {
 
         fprintf(stderr, "%s(%d), failure ret %d.\n", __func__, __LINE__, ret);
-#if 0
-	BIF_RET(erts_make_integer(total_size, BIF_P));
-#else
 	BIF_ERROR(BIF_P, BADARG);
-#endif
     }
 }
 
