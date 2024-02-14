@@ -1262,8 +1262,8 @@ static int erts_ioq_list_vec(Eterm list, ErtsIOVec **evp)
         return 2;
     }
 
-    fprintf(stderr, "%s(%d), vsize %u, csize %lu, pvsieze %lu, pcsize %lu, total %ld\n",
-            __func__, __LINE__, vsize, csize, pvsize, pcsize, total_size);
+    //fprintf(stderr, "%s(%d), vsize %u, csize %lu, pvsieze %lu, pcsize %lu, total %ld\n",
+    //        __func__, __LINE__, vsize, csize, pvsize, pcsize, total_size);
 
     /* To pack or not to pack (small binaries) ...? */
     if (vsize >= SMALL_WRITE_VEC) {
@@ -1375,7 +1375,7 @@ BIF_RETTYPE write_io_queue_2(BIF_ALIST_2) {
 
         erts_free(ERTS_ALC_T_TMP, evp);
 
-        fprintf(stderr, "%s(%d),ioq_list_vec success, total_size %ld.\n", __func__, __LINE__, total_size);
+        //fprintf(stderr, "%s(%d),ioq_list_vec success, total_size %ld.\n", __func__, __LINE__, total_size);
         BIF_RET(erts_make_integer(total_size, BIF_P));
 
     } else {
