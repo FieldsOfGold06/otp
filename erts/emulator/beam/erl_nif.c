@@ -4019,6 +4019,21 @@ void enif_ioq_destroy(ErlNifIOQueue *q)
     enif_free(q);
 }
 
+int enif_ioq_open(ERL_NIF_TERM term, ErlNifIOQueue **out)
+{
+    ErlNifIOQueue *q;
+    if (!out)
+        return 0;
+
+    q = erts_ioq_open_via_term(term);
+    if (!q)
+        return 0;
+    else
+        *out = q;
+
+    return 1;
+}
+
 /* If the iovec was preallocated (Stack or otherwise) it needs to be marked as
  * such to perform a proper free. */
 #define ERL_NIF_IOVEC_FLAGS_PREALLOC (1 << 0)

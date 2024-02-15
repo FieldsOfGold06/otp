@@ -117,7 +117,7 @@ int erts_ioq_iodata_to_vec(Eterm obj, SysIOVec* iov,
                            ErtsIOQBinary** binv, ErtsIOQBinary* cbin,
                            Uint bin_limit, int driver_binary);
 
-
+ErtsIOQueue* erts_ioq_open_via_term(Eterm term);
 #if ERTS_GLB_INLINE_INCL_FUNC_DEF
 
 ERTS_GLB_INLINE

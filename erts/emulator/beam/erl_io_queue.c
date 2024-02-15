@@ -1233,8 +1233,6 @@ typedef struct erl_bif_io_vec {
 
 #endif
 
-
-
 #define SMALL_WRITE_VEC 16
 #define ERL_SMALL_IO_BIN_LIMIT 64
 
@@ -1329,6 +1327,25 @@ static int ioq_destructor(Binary *data) {
     ethr_mutex_destroy(&state->mutex);
 
     return 1;
+}
+
+ErtsIOQueue* erts_ioq_open_via_term(Eterm term)
+{
+    Binary *magic_binary;
+    ErlUserIOQueue *state;
+
+    if (!is_internal_magic_ref(term)) {
+        return NULL;
+    }
+
+    magic_binary = erts_magic_ref2bin(term);
+
+    if (ERTS_MAGIC_BIN_DESTRUCTOR(magic_binary) != &ioq_destructor) {
+        return NULL;
+    }
+    state = ERTS_MAGIC_BIN_UNALIGNED_DATA(magic_binary);
+
+    return &(state->ioq);
 }
 
 BIF_RETTYPE create_io_queue_0(BIF_ALIST_0) {

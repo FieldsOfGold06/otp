@@ -186,6 +186,7 @@ ERL_NIF_API_FUNC_DECL(int, enif_whereis_port, (ErlNifEnv *env, ERL_NIF_TERM name
 
 ERL_NIF_API_FUNC_DECL(ErlNifIOQueue *,enif_ioq_create,(ErlNifIOQueueOpts opts) ERL_NAPI_ATTR_MALLOC_D(enif_ioq_destroy,1));
 ERL_NIF_API_FUNC_DECL(void,enif_ioq_destroy,(ErlNifIOQueue *q));
+ERL_NIF_API_FUNC_DECL(int,enif_ioq_open,(ERL_NIF_TERM term, ErlNifIOQueue **q));
 
 ERL_NIF_API_FUNC_DECL(int,enif_ioq_enq_binary,(ErlNifIOQueue *q, ErlNifBinary *bin, size_t skip));
 ERL_NIF_API_FUNC_DECL(int,enif_ioq_enqv,(ErlNifIOQueue *q, ErlNifIOVec *iov, size_t skip));
