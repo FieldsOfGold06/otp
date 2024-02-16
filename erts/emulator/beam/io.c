@@ -504,7 +504,7 @@ static void stopq(Port* prt)
     if (prt->port_data_lock)
 	driver_pdl_lock(prt->port_data_lock);
 
-    erts_ioq_clear(&prt->ioq);
+    erts_ioq_destroy(&prt->ioq);
 
     if (prt->port_data_lock) {
 	driver_pdl_unlock(prt->port_data_lock);

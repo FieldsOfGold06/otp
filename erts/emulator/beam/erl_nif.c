@@ -4015,8 +4015,25 @@ ErlNifIOQueue *enif_ioq_create(ErlNifIOQueueOpts opts)
 
 void enif_ioq_destroy(ErlNifIOQueue *q)
 {
-    erts_ioq_clear(q);
+    erts_ioq_destroy(q);
     enif_free(q);
+}
+
+void enif_ioq_lock(ErlNifIOQueue *q)
+{
+    ethr_mutex_lock(&q->mutex);
+}
+
+void enif_ioq_unlock(ErlNifIOQueue *q)
+{
+    ethr_mutex_unlock(&q->mutex);
+}
+
+int enif_ioq_open(ErlNifEnv *env, ERL_NIF_TERM term, ErlNifIOQueue **out)
+{
+    (void)env;
+    *out = erts_ioq_open_via_term(term);
+    return *out != NULL;
 }
 
 /* If the iovec was preallocated (Stack or otherwise) it needs to be marked as

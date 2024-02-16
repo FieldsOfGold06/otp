@@ -81,6 +81,8 @@ typedef struct erts_io_queue {
     ErtsIOQBinary **b_tail;
     ErtsIOQBinary  *b_small[ERTS_SMALL_IO_QUEUE];
 
+    ethr_mutex mutex;
+
 } ErtsIOQueue;
 
 #endif /* ERL_IO_QUEUE_H__TYPES__ */
@@ -92,7 +94,8 @@ typedef struct erts_io_queue {
 #include "erl_bits.h"
 
 void erts_ioq_init(ErtsIOQueue *q, ErtsAlcType_t alct, int driver);
-void erts_ioq_clear(ErtsIOQueue *q);
+void erts_ioq_destroy(ErtsIOQueue *q);
+ErtsIOQueue* erts_ioq_open_via_term(Eterm term);
 Uint erts_ioq_size(ErtsIOQueue *q);
 int erts_ioq_enqv(ErtsIOQueue *q, ErtsIOVec *vec, Uint skip);
 int erts_ioq_pushqv(ErtsIOQueue *q, ErtsIOVec *vec, Uint skip);
