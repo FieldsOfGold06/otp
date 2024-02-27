@@ -1093,6 +1093,34 @@ get_cgroup_v1_base_dir(const char *controller) {
     return NULL;
 }
 
+static const char*
+get_cgroup_v2_base_dir(const char *mount_path) {
+    char line_buf[5 << 10];
+    FILE *var_file;
+
+    var_file = fopen("/proc/self/cgroup", "r");
+
+    if (var_file == NULL) {
+        return NULL;
+    }
+
+    while (fgets(line_buf, sizeof(line_buf), var_file)) {
+
+        char base_dir[4 << 10];
+        if (sscanf(line_buf, "%*d::%4095s\n",
+                   base_dir) != 1) {
+            continue;
+	}
+
+        fclose(var_file);
+        return str_combine(mount_path, base_dir);
+    }
+
+    fclose(var_file);
+    return NULL;
+
+}
+
 enum cgroup_version_t {
     ERTS_CGROUP_NONE,
     ERTS_CGROUP_V1,
@@ -1137,17 +1165,22 @@ get_cgroup_path(const char *controller, const char **path) {
             char controllers[256];
             const char *cgc_path;
 
-            cgc_path = str_combine(mount_path, "/cgroup.controllers");
-            if (read_file(cgc_path, controllers, sizeof(controllers)) > 0) {
-                if (csv_contains(controllers, controller, ' ')) {
-                    free((void*)cgc_path);
-                    fclose(var_file);
+            const char *base_dir = get_cgroup_v2_base_dir(mount_path);
+            if (base_dir) {
+                cgc_path = str_combine(base_dir, "/cgroup.controllers");
+                if (read_file(cgc_path, controllers, sizeof(controllers)) > 0) {
+                    if (csv_contains(controllers, controller, ' ')) {
+                        *path = base_dir;
 
-                    *path = strdup(mount_path);
-                    return ERTS_CGROUP_V2;
+                        free((void*)cgc_path);
+                        fclose(var_file);
+                        return ERTS_CGROUP_V2;
+                    }
                 }
+                free((void*)base_dir);
+                free((void*)cgc_path);
             }
-            free((void*)cgc_path);
+
         } else if (!strcmp(fs_type, "cgroup")) {
             if (csv_contains(fs_flags, controller, ',')) {
                 const char *base_dir = get_cgroup_v1_base_dir(controller);
