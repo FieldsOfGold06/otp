@@ -74,21 +74,39 @@
 %%% Info
 %%%-------------------------------------------------------------------
 
+-spec info(Procs) -> [{Pid, Result}] when
+    Procs   :: daemons | servers,
+    Pid     :: pid(),
+    Result  :: term();
+          (Pid) -> Result when
+    Pid     :: pid(),
+    Result  :: term().
+
 info(daemons) ->
     Daemons = supervisor:which_children(tftp_sup),
     [{Pid, info(Pid)} || {_, Pid, _, _} <- Daemons];
 info(servers) ->
-    [{Pid, info(Pid)} || {_, {ok, DeamonInfo}} <- info(daemons),
-                         {server, Pid}   <- DeamonInfo];
+    [{Pid, info(Pid)} || {_, {ok, DeamonInfo}} <- info(daemons), {server, Pid}   <- DeamonInfo];
 info(ToPid) when is_pid(ToPid) ->
     call(info, ToPid, timer:seconds(10)).
+
+-spec change_config(Procs, Options) -> [{Pid, Result}] when
+    Procs   :: daemons | servers,
+    Options :: [tftp:option()],
+    Pid     :: pid(),
+    Result  :: ok | {error, Reason},
+    Reason  :: term();
+                   (Pid, Options) -> Result when
+    Pid     :: pid(),
+    Options :: [tftp:option()],
+    Result  :: ok | {error, Reason},
+    Reason  :: term().
 
 change_config(daemons, Options) ->
     Daemons = supervisor:which_children(tftp_sup),
     [{Pid, change_config(Pid, Options)} || {_, Pid, _, _} <- Daemons];
 change_config(servers, Options) ->
-    [{Pid, change_config(Pid, Options)} || {_, {ok, DeamonInfo}} <- info(daemons),
-                                           {server, Pid}   <- DeamonInfo];
+    [{Pid, change_config(Pid, Options)} || {_, {ok, DeamonInfo}} <- info(daemons), {server, Pid}   <- DeamonInfo];
 change_config(ToPid, Options) when is_pid(ToPid) ->
     BadKeys = [host, port, udp],
     BadOptions = [{Key, Val} || {Key, Val} <- Options,
