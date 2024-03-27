@@ -53,6 +53,12 @@ export(Content,Callback)
 
 Equivalent to [export(Data, Callback, [])](`export/3`).
 """.
+
+spec export(Content, Callback) -> ExportedFormat when
+    Content :: [Element],
+    Callback :: atom(),
+    ExportedFormat :: term().
+
 export(Content, Callback) ->
     export(Content, Callback, []).
 
@@ -151,6 +157,11 @@ the required function `'#xml-interitance#() -> [ModuleName::atom()]`.
 
 _See also: _`export/2`, `export_simple/3`.
 """.
+-spec export(Content, Callback, RootAttributes) -> ExportedFormat when
+    Content :: [Element],
+    Callback :: atom(),
+    RootAttributes :: [XmlAttributes],
+    ExportedFormat :: term().
 export(Content, Callback, RootAttributes) when is_atom(Callback) ->
     export1(Content, callbacks(Callback), RootAttributes);
 export(Content, Callbacks, RootAttrs) when is_list(Callbacks) ->
@@ -164,6 +175,10 @@ export_simple(Content,Callback)
 
 Equivalent to [export_simple(Content, Callback, [])](`export_simple/3`).
 """.
+-spec export_simple(Content, Callback) -> ExportedFormat when
+    Content :: [Element],
+    Callback :: atom(),
+    ExportedFormat :: term().
 export_simple(Content, Callback) ->
     export_simple(Content, Callback, []).
 
@@ -396,6 +411,10 @@ callbacks(Module)
 
 Find the list of inherited callback modules for a given module.
 """.
+
+spec callbacks(Module) -> Result when
+    Module = atom(),
+    Result = [atom()].
 callbacks(Module) ->
     Result = check_inheritance(Module, []),
 %%%     ?dbg("callbacks = ~p~n", [lists:reverse(Result)]),
